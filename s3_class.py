@@ -87,8 +87,8 @@ s3_obj = S3Operations()
 # parameters
 config_file_path = 'C:\\Users\\satissingh\\PycharmProjects\\PySpark_Project\\config\\config.properties'
 bucket_name_to_use = 'satishbucket2132448'
-file_name_key = 'Details_3.csv'
-file_name_location = 'C:\\Users\\satissingh\\PycharmProjects\\PySpark_Project\\S3\\Details_3.csv'
+file_name_key = 'Details_4.csv'
+file_name_location = 'C:\\Users\\satissingh\\PycharmProjects\\PySpark_Project\\S3\\Details_4.csv'
 service_name_to_use = 's3'
 download_file_name = 'downloaded_'+file_name_key
 
@@ -109,22 +109,22 @@ get_files = s3_obj.list_files_in_bucket(client,bucket_name_to_use, file_name_key
 print('Files present or not IN BUCKET: ', get_files)
 
 #if the file already exists then delete it and then upload it.
-# if get_files:
-#     print('File already exists so deleting it and uploading')
-#     response_delete = s3_obj.delete_files(client, bucket_name_to_use, file_name=file_name_key)
-#     print('File Delete? ', response_delete if response_delete else 'No')
-#     upload_file = s3_obj.upload_file_to_s3(client, bucket_name=bucket_name_to_use,
-#                                            file_name=file_name_location,
-#                                            object_name=None)
-# else:
-#     print('File not found. So uploading new one')
-#     upload_file = s3_obj.upload_file_to_s3(client, bucket_name=bucket_name_to_use,
-#                                            file_name=file_name_location,
-#                                            object_name=None)
-#     print('UPLOAD FILE STATUS: ',upload_file)
-#
-# s3_obj.download_file(client, bucket_name=bucket_name_to_use, file_name_key=file_name_key,
-#                      download_file_name=download_file_name)
+if get_files:
+    print('File already exists so deleting it and uploading')
+    response_delete = s3_obj.delete_files(client, bucket_name_to_use, file_name=file_name_key)
+    print('File Delete? ', response_delete if response_delete else 'No')
+    upload_file = s3_obj.upload_file_to_s3(client, bucket_name=bucket_name_to_use,
+                                           file_name=file_name_location,
+                                           object_name=None)
+else:
+    print('File not found. So uploading new one')
+    upload_file = s3_obj.upload_file_to_s3(client, bucket_name=bucket_name_to_use,
+                                           file_name=file_name_location,
+                                           object_name=None)
+    print('UPLOAD FILE STATUS: ',upload_file)
+
+s3_obj.download_file(client, bucket_name=bucket_name_to_use, file_name_key=file_name_key,
+                     download_file_name=download_file_name)
 
 
 # pandas operation
@@ -135,7 +135,10 @@ print('Data read from CSV: ', df)
 # write_csv
 pd.write_csv_date(file_to_write=file_name_key, data=df)
 
-
+# uploading the new file:
+print('File to be uploaded after modification: ', file_name_location.replace(file_name_key,'upload_'+file_name_key))
+s3_obj.upload_file_to_s3(client, bucket_name_to_use, file_name_location.replace(file_name_key,'upload_'+file_name_key),
+                         object_name=None)
 
 
 
