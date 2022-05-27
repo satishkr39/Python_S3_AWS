@@ -4,6 +4,8 @@ import logging
 import os
 from botocore.exceptions import ClientError
 from PandasOperation import *
+import yaml
+from yaml.loader import SafeLoader
 
 class S3Operations:
     # read configurations
@@ -80,18 +82,38 @@ class S3Operations:
         with open(download_file_name, 'wb') as data:
             client.download_fileobj(bucket_name, file_name_key, data)
 
+    # copy files from source bucket to destination bucket
+    def copy_file_between_bucket(self, client, source_bucket, destination_bucket, file_name_source_key,
+                                 file_name_destination_key):
+        print('copy_file_between_bucket method called')
+        copy_source = {
+            'Bucket': source_bucket,
+            'Key': file_name_source_key
+        }
+        print('SOURCE BUCKET AND FILE IS: ',copy_source)
+        print('DESTINATION BUCKET IS : ', destination_bucket)
+        client.copy_object(CopySource=copy_source, Bucket=destination_bucket, Key=file_name_destination_key)
+
 
 # create object
 s3_obj = S3Operations()
 
-# parameters
-config_file_path = 'C:\\Users\\satissingh\\PycharmProjects\\PySpark_Project\\config\\config.properties'
-bucket_name_to_use = 'satishbucket2132448'
-file_name_key = 'Details_4.csv'
-file_name_location = 'C:\\Users\\satissingh\\PycharmProjects\\PySpark_Project\\S3\\Details_4.csv'
-service_name_to_use = 's3'
-download_file_name = 'downloaded_'+file_name_key
+# read config files
+with open('config.yaml') as f:
+    data = yaml.load(f, Loader=SafeLoader)
 
+# parameters
+config_file_path = data['config_file_path'].replace("\\","\\\\")
+bucket_name_to_use = data['bucket_name_to_use']
+file_name_key = data['file_name_key']
+file_name_location = data['file_name_location'].replace("\\","\\\\")
+service_name_to_use = data['service_name_to_use']
+download_file_name = 'downloaded_'+data['file_name_key']
+destination_bucket = data['destination_bucket']
+source_bucket = data['source_bucket']
+file_name_destination_key = data['file_name_destination_key']
+
+print(data)
 # get connection object
 aws_access_key, aws_secret_key = s3_obj.get_configuration(config_file_path)
 # print(aws_access_key)
@@ -99,8 +121,8 @@ aws_access_key, aws_secret_key = s3_obj.get_configuration(config_file_path)
 client = s3_obj.connect_to_aws_service(service_name_to_use, aws_access_key, aws_secret_key)
 # print(client)
 
-# response = s3_obj.create_bucket('shuvobucket2323',client)
-# print(response)
+response = s3_obj.create_bucket(bucket_name=bucket_name_to_use,client=client)
+print(response)
 
 all_buckets = s3_obj.list_buckets(client)
 # print(all_buckets)
@@ -123,8 +145,12 @@ else:
                                            object_name=None)
     print('UPLOAD FILE STATUS: ',upload_file)
 
-s3_obj.download_file(client, bucket_name=bucket_name_to_use, file_name_key=file_name_key,
+s3_obj.download_file(client=client, bucket_name=bucket_name_to_use, file_name_key=file_name_key,
                      download_file_name=download_file_name)
+
+# copy file from source bucket to destination bucket
+s3_obj.copy_file_between_bucket(client, source_bucket, destination_bucket, file_name_key, file_name_destination_key
+                                +'_'+file_name_key)
 
 
 # pandas operation

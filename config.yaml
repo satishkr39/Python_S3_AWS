@@ -1,0 +1,10 @@
+---
+  config_file_path : C:\Users\satissingh\PycharmProjects\PySpark_Project\config\config.properties
+  bucket_name_to_use: satishsource12
+  file_name_key: Details_4.csv
+  file_name_location: C:\Users\satissingh\PycharmProjects\PySpark_Project\S3\Details_3.csv
+  service_name_to_use: s3
+  source_bucket: satishsource12
+  destination_bucket: satishdestination12
+  file_name_destination_key: copied
+...
